@@ -1,0 +1,5 @@
+fix45:
+- Removed the black Flutter AppBar from PWA external Salt websites page.
+- Removed the black loading/status overlay above the iframe/player.
+- Salt websites now open as a clean full-screen iframe with no Flutter UI covering the player.
+- Back is handled by browser/device back.

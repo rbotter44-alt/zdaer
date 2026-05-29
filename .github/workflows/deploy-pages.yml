@@ -1,8 +1,8 @@
-name: Deploy Light On PWA
+name: Deploy Flutter Web to GitHub Pages
 
 on:
   push:
-    branches: [ main ]
+    branches: ["main"]
   workflow_dispatch:
 
 permissions:
@@ -11,17 +11,12 @@ permissions:
   id-token: write
 
 concurrency:
-  group: pages
+  group: "pages"
   cancel-in-progress: false
 
 jobs:
-  build-and-deploy:
+  build:
     runs-on: ubuntu-latest
-
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -30,23 +25,49 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           channel: stable
+          cache: true
 
       - name: Flutter pub get
         run: flutter pub get
 
-      - name: Build Flutter Web
-        run: flutter build web --release --base-href /zdaer/
+      - name: Compute GitHub Pages base href
+        id: basehref
+        shell: bash
+        run: |
+          REPO="${GITHUB_REPOSITORY#*/}"
+          OWNER="${GITHUB_REPOSITORY%%/*}"
+          if [[ "$REPO" == "$OWNER.github.io" ]]; then
+            echo "base=/" >> "$GITHUB_OUTPUT"
+          else
+            echo "base=/$REPO/" >> "$GITHUB_OUTPUT"
+          fi
 
-      - name: Configure GitHub Pages
+      - name: Build Flutter web
+        run: flutter build web --release --base-href "${{ steps.basehref.outputs.base }}"
+
+      - name: Prepare GitHub Pages artifact
+        shell: bash
+        run: |
+          cp build/web/index.html build/web/404.html
+          touch build/web/.nojekyll
+
+      - name: Configure Pages
         uses: actions/configure-pages@v5
         with:
           enablement: true
 
-      - name: Upload GitHub Pages artifact
+      - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: build/web
 
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4

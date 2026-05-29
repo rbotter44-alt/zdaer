@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:lottie/lottie.dart';
 import 'package:media_kit/media_kit.dart';
 import 'pwa/refresh_rate_compat.dart';
+import 'pwa/pwa_site_frame.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'sources/light_on_source.dart' as light_on;
@@ -59,13 +60,28 @@ Future<void> openSourceActivity(BuildContext context, String source) async {
       page = kIsWeb ? const light_on.CinemaTmdbRoot() : const light_on.CinemaTmdbApp();
       break;
     case 'anime':
-      page = const anime.AsdPicsPlayer();
+      page = kIsWeb
+          ? const PwaExternalSitePage(
+              title: 'Ainme',
+              initialUrl: 'https://anime3rb.com/',
+            )
+          : const anime.AsdPicsPlayer();
       break;
     case 'egy':
-      page = const egy.C4uPlayer();
+      page = kIsWeb
+          ? const PwaExternalSitePage(
+              title: 'EGY',
+              initialUrl: 'https://egydead.pics/',
+            )
+          : const egy.C4uPlayer();
       break;
     case 'arab':
-      page = const arab.AsdPicsPlayer();
+      page = kIsWeb
+          ? const PwaExternalSitePage(
+              title: 'ARAB',
+              initialUrl: 'https://m.arabseed.show/main8/',
+            )
+          : const arab.AsdPicsPlayer();
       break;
     default:
       ScaffoldMessenger.of(context).showSnackBar(
