@@ -1,0 +1,11 @@
+<!-- ضع هذا الجزء داخل AndroidManifest.xml فوق <application> مباشرة -->
+<queries>
+    <intent>
+        <action android:name="android.intent.action.VIEW" />
+        <data android:scheme="tg" />
+    </intent>
+    <intent>
+        <action android:name="android.intent.action.VIEW" />
+        <data android:scheme="https" />
+    </intent>
+</queries>

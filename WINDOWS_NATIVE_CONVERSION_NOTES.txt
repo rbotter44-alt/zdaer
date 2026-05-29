@@ -1,0 +1,6 @@
+Windows conversion notes:
+- Android native/Kotlin files are left untouched.
+- Windows uses MediaKit through lib/universal_media_player.dart instead of ExoPlayer.
+- Windows media capture is isolated in lib/windows_pc_media_capture.dart.
+- The Windows WebView2 path now uses native plugin request/resource callbacks first (shouldInterceptRequest/onLoadResource) and a WebView2-safe capture script only as a fallback. The fallback does not create DOM nodes and wraps old Android scripts so appendChild/null errors cannot break WebView2.
+- PullToRefresh is disabled only on Windows because flutter_inappwebview_windows does not implement it.

@@ -1,0 +1,37 @@
+name: flutter_application_1
+
+description: "Light On Flutter app converted with web/PWA support."
+publish_to: 'none'
+
+version: 1.0.0+4003
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+  dio: ^5.3.0
+  flutter_inappwebview: ^6.1.5
+  open_file: ^3.5.0
+  path_provider: ^2.1.0
+  archive: ^3.6.1
+  url_launcher: ^6.3.0
+  lottie: ^3.3.0
+  media_kit: ^1.2.0
+  media_kit_video: ^1.2.5
+  media_kit_libs_video: ^1.0.5
+  refresh_rate: ^1.0.1
+  video_thumbnail: ^0.5.3
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/
+    - assets/subtitle_activation/

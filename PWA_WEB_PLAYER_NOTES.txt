@@ -1,0 +1,26 @@
+Light On PWA web player changes
+================================
+
+What was added:
+- lib/universal_media_player.dart is now a conditional export.
+- lib/universal_media_player_io.dart keeps the original media_kit player for Android/iOS/desktop.
+- lib/universal_media_player_web.dart adds a real Flutter Web player shell using HtmlElementView.
+- web/lighton_web_player.js adds the browser-side player bridge:
+  * Safari/iPhone native HLS for .m3u8.
+  * hls.js for Chrome/Edge/Firefox HLS playback.
+  * iframe Provider mode for VidFast/Videasy/internal player URLs.
+  * automatic highest HLS level selection when hls.js parses a master playlist.
+  * Provider fallback button if direct HLS fails and a page/provider URL is available.
+- web/index.html loads hls.js and lighton_web_player.js.
+- Light On watch buttons on Web/PWA now open the VidFast provider player directly instead of relying first on hidden native/WebView capture.
+- PWA download buttons now open the player, because browser PWA cannot save protected HLS as a native background download like Android.
+
+Important limits:
+- Browser/PWA still cannot set forbidden headers such as Referer, Origin, Cookie, or User-Agent manually.
+- Direct HLS will work only when the provider/worker allows browser playback/CORS or Safari native HLS accepts it.
+- If direct HLS fails, use the Provider iframe mode; this lets the provider's own player handle cookies/referer internally.
+
+Test commands:
+flutter pub get
+flutter run -d chrome
+flutter build web --release

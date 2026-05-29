@@ -1,0 +1,49 @@
+تمت إضافة طبقة تشفير/إخفاء Runtime للنصوص الحساسة داخل Dart وKotlin.
+للحصول على أقوى حماية في Flutter، ابْنِ النسخة النهائية عبر:
+
+Windows:
+  build_secure_release.bat
+
+أو يدويًا:
+  flutter build apk --release --obfuscate --split-debug-info=build/symbols --tree-shake-icons
+
+مهم: احتفظ بمجلد build/symbols عندك فقط، ولا ترفعه للمستخدمين، لأنه ضروري لفك رموز أخطاء Crash لاحقًا.
+
+SECOND HARDENING LAYER ADDED
+- Installer/source check was intentionally NOT added.
+- Added native signature verification through BuildConfig.TRUSTED_CERT_SHA256.
+- Added release/debug guard: debug/profile/debuggable builds terminate immediately.
+- Added root detection: su/busybox/magisk paths, PATH scan, test-keys, ro.debuggable + ro.secure.
+- Added emulator detection: generic/sdk/goldfish/ranchu/vbox/google_sdk patterns.
+- Added runtime tamper detection: debugger/tracer, Xposed/Substrate/Frida/Riru/Zygisk/LSPosed loaded libraries/classes.
+- Added Dart guard: checks product release mode and confirms native security status before runApp.
+- Added SecurityChannel.kt and connected it to all Flutter activities.
+
+Build command:
+flutter build apk --release --obfuscate --split-debug-info=build/symbols --tree-shake-icons
+
+Important:
+- Debug builds are blocked by design after this layer.
+- Rooted/emulator devices are blocked by design.
+- The installer/source validation was not implemented, per request.
+
+STRICT SECURITY ENABLED BY DEFAULT
+- Dart guard default is now APP_STRICT_SECURITY=true.
+- Native Kotlin SecurityGuard STRICT_ENFORCEMENT is now true.
+- If APK is modified and re-signed with a different certificate, the signature check fails and the app exits.
+- Debug/profile/debuggable builds are blocked.
+- Root/emulator/hook/tamper/debugger/proxy/VPN detections enforce blocking.
+- Installer/source check is still NOT implemented.
+
+Temporary local test only:
+flutter build apk --release --obfuscate --split-debug-info=build/symbols --tree-shake-icons --dart-define=APP_STRICT_SECURITY=false
+
+FREEZE FIX LAYER
+- Dart security calls are now fire-and-forget in all entry points.
+- Heavy package/VPN/proxy/root scanning is disabled by default to prevent startup freeze.
+- Strict anti-tamper still keeps signature/debug/package checks active.
+
+FREEZE FIX V2
+- Removed automatic native lifecycle checks from Application/Activities.
+- Native signature check now runs after UI appears through Dart SecurityChannel.
+- APK resign/tamper check remains active, but startup no longer waits for security scans.

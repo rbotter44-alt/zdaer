@@ -1,0 +1,10 @@
+fix43_pwa_ad_protection
+
+Applied the user's PWAAdProtection idea around the VidFast iframe:
+- No sandbox.
+- Click Shield: first tap is swallowed and shows a toast.
+- Touch unlock: iframe receives touches for 7 seconds, then relocks.
+- Restore Guard: on focus/visibility return, it restores layout/shield.
+- If the iframe navigates immediately after unlock, it restores the original VidFast URL and relocks.
+
+This does not remove ads inside VidFast. It only tries to reduce first-click ad redirects and restore the player.

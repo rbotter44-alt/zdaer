@@ -1,0 +1,18 @@
+LightOn PWA resolver setup
+
+1) Open Cloudflare Workers.
+2) Open your worker: silent-queen-bd18.thanksforward3.workers.dev
+3) Edit code.
+4) Delete old code.
+5) Paste the COMPLETE content of web/lighton_resolver_worker.js from this project.
+6) Deploy.
+7) Open this URL to verify the new worker is active:
+   https://silent-queen-bd18.thanksforward3.workers.dev/health
+   It must return JSON with:
+   "version": "fix15-proxy-subtitle-debug"
+8) Run Flutter Web with:
+   flutter run -d chrome --dart-define=LIGHTON_WEB_RESOLVER=https://silent-queen-bd18.thanksforward3.workers.dev/resolve
+
+Important:
+If subtitle ZIP debug shows JSON like {ok:false, iframeUrl:..., pageStatus:403} inside preview,
+your worker is still old or /proxy was not deployed. Update the worker code again.

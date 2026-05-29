@@ -1,0 +1,4 @@
+storePassword=PUT_YOUR_STORE_PASSWORD_HERE
+keyPassword=PUT_YOUR_KEY_PASSWORD_HERE
+keyAlias=lighton
+storeFile=lighton-release.jks

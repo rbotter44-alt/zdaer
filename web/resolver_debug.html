@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>LightOn Resolver Debug</title>
+  <style>
+    body{margin:0;background:#0b0d12;color:#e9eef9;font-family:Tahoma,Arial,sans-serif;padding:22px;}
+    .wrap{max-width:1100px;margin:auto;}
+    h1{font-size:24px;margin:0 0 8px}.hint{color:#9aa7bd;margin-bottom:18px;line-height:1.7}
+    label{display:block;margin:12px 0 6px;font-weight:700}
+    input,textarea{width:100%;box-sizing:border-box;background:#111827;color:#fff;border:1px solid #334155;border-radius:10px;padding:11px;font-family:Consolas,monospace;direction:ltr;text-align:left}
+    button{margin-top:14px;background:#dc2626;color:#fff;border:0;border-radius:10px;padding:12px 18px;font-weight:800;cursor:pointer}button.secondary{background:#334155;margin-inline-start:8px}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:18px}@media(max-width:900px){.grid{grid-template-columns:1fr}}
+    .card{background:#111827;border:1px solid #263244;border-radius:14px;overflow:hidden}.card h2{font-size:15px;margin:0;padding:10px 12px;background:#1f2937}.card pre{margin:0;padding:12px;max-height:420px;overflow:auto;direction:ltr;text-align:left;white-space:pre-wrap;word-break:break-word;font-family:Consolas,monospace;font-size:12px;line-height:1.45}
+    .ok{color:#22c55e}.bad{color:#f87171}.step{border-bottom:1px dashed #334155;padding:7px 0;direction:ltr;text-align:left}.small{font-size:12px;color:#9aa7bd}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>LightOn Resolver Debug</h1>
+    <div class="hint">هذه الصفحة تعرض ماذا يحدث عند استدعاء Cloudflare Worker: الطلب، الرد، الروابط المرشحة، وهل الرابط قابل للتشغيل. افتحها من نفس Chrome الذي يشغل Flutter Web.</div>
+
+    <label>Resolver URL</label>
+    <input id="resolver" placeholder="https://your-worker.workers.dev/resolve" />
+    <label>Provider / Player URL</label>
+    <textarea id="target" rows="4" placeholder="ضع رابط VidFast/Videasy/worker html أو m3u8 هنا"></textarea>
+    <button id="run">اختبر الاستخراج</button>
+    <button class="secondary" id="save">احفظ resolver في localStorage</button>
+    <button class="secondary" id="clear">مسح النتائج</button>
+
+    <div class="grid">
+      <div class="card"><h2>الخطوات</h2><pre id="log"></pre></div>
+      <div class="card"><h2>JSON Raw Response</h2><pre id="json"></pre></div>
+    </div>
+  </div>
+
+<script>
+(function(){
+  const resolver = document.getElementById('resolver');
+  const target = document.getElementById('target');
+  const log = document.getElementById('log');
+  const raw = document.getElementById('json');
+  resolver.value = localStorage.getItem('LIGHTON_WEB_RESOLVER') || '';
+  function add(msg, data){
+    const t = new Date().toLocaleTimeString('en-GB',{hour12:false});
+    log.textContent += '['+t+'] '+msg+(data? '\n'+JSON.stringify(data,null,2):'')+'\n\n';
+    log.scrollTop = log.scrollHeight;
+  }
+  document.getElementById('save').onclick = function(){ localStorage.setItem('LIGHTON_WEB_RESOLVER', resolver.value.trim()); add('saved resolver to localStorage', resolver.value.trim()); };
+  document.getElementById('clear').onclick = function(){ log.textContent=''; raw.textContent=''; };
+  document.getElementById('run').onclick = async function(){
+    log.textContent=''; raw.textContent='';
+    const r = resolver.value.trim();
+    const u = target.value.trim();
+    if(!r || !u){ add('missing resolver or target'); return; }
+    localStorage.setItem('LIGHTON_WEB_RESOLVER', r);
+    const payload = { url:u, pageUrl:u, title:'debug-test', preferMaxHeight:1080 };
+    add('POST resolver', {resolver:r, payload});
+    try{
+      const started = performance.now();
+      const res = await fetch(r,{method:'POST',mode:'cors',credentials:'omit',headers:{'content-type':'application/json'},body:JSON.stringify(payload)});
+      add('HTTP response', {status:res.status, ok:res.ok, contentType:res.headers.get('content-type')});
+      const text = await res.text();
+      raw.textContent = text;
+      let json = null;
+      try{ json = JSON.parse(text); }catch(e){ add('response is not JSON', e.message); return; }
+      add('parsed result', {ok:json.ok, url:json.url, iframeUrl:json.iframeUrl, error:json.error, ms:Math.round(performance.now()-started)});
+      if(Array.isArray(json.candidates)) add('candidates count='+json.candidates.length, json.candidates.slice(0,10));
+      if(Array.isArray(json.checked)) add('checked count='+json.checked.length, json.checked.slice(0,10));
+      if(json.url) add('FINAL PLAYABLE URL', json.url);
+      if(json.iframeUrl) add('FALLBACK IFRAME URL', json.iframeUrl);
+    }catch(e){ add('FETCH FAILED', {message:e.message||String(e), note:'غالبًا CORS أو رابط resolver غلط أو Worker لم ينشر /resolve'}); }
+  };
+})();
+</script>
+</body>
+</html>

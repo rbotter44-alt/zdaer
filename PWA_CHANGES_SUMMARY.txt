@@ -1,0 +1,23 @@
+PWA conversion summary
+======================
+
+Added:
+- pubspec.yaml at project root.
+- web/index.html, web/manifest.json, web/offline.html, and PWA icons.
+- lib/pwa compatibility layer for web builds:
+  - io_compat: replaces direct dart:io imports in app code.
+  - path_provider_compat: no-op web directories, real path_provider on native.
+  - video_thumbnail_compat: thumbnails disabled on web, real plugin on native.
+  - refresh_rate_compat: no-op on web, real plugin on native.
+  - isolate_compat: runs code inline on web, real Isolate.run on native.
+  - file_image_compat: avoids Image.file usage on web.
+
+Changed:
+- Removed direct dart:io and dart:isolate imports from app source files.
+- PWA download behavior opens media links in browser instead of writing to local device files.
+- Kept Android/native behavior through conditional exports as much as possible.
+
+Limitations:
+- PWA cannot use Android MethodChannel features such as native PiP, native background downloader, or SecurityGuard.
+- WebView behavior in browser depends on iframe/CORS/X-Frame-Options policies of each site.
+- Browser playback/downloading of protected media may require HTTPS and valid CORS headers.

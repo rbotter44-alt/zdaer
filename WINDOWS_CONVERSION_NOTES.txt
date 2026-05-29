@@ -1,0 +1,6 @@
+Windows conversion notes:
+- Android native files under app/ were not modified.
+- Windows-only fixes are guarded by Platform.isWindows.
+- PullToRefreshController is disabled on Windows only because flutter_inappwebview_windows does not implement it.
+- Added Windows deep media sniffer to capture m3u8/mp4/mpd URLs via fetch/XHR/performance/players and forward to the existing onVideoFound pipeline.
+- Existing Android capture/player pipeline is preserved.
