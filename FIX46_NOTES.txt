@@ -1,0 +1,4 @@
+Fix46:
+- Replaced the PWA external website iframe with same-tab redirect.
+- Reason: anime/egy/arab sites often block iframe embedding with X-Frame-Options/CSP, causing a gray blank page.
+- Now Salt Website sections open the real website directly; browser Back returns to the app.

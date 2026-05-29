@@ -1,8 +1,6 @@
 import 'dart:async';
 // ignore: avoid_web_libraries_in_flutter
 import 'dart:html' as html;
-import 'dart:js_util' as js_util;
-import 'dart:ui_web' as ui_web;
 
 import 'package:flutter/material.dart';
 
@@ -21,84 +19,67 @@ class PwaExternalSitePage extends StatefulWidget {
 }
 
 class _PwaExternalSitePageState extends State<PwaExternalSitePage> {
-  late final String _viewType;
-  late final html.DivElement _root;
-  late final html.IFrameElement _iframe;
-  StreamSubscription<html.Event>? _loadSub;
+  bool _redirectStarted = false;
 
   @override
   void initState() {
     super.initState();
-    _viewType = 'lighton-pwa-site-frame-${DateTime.now().microsecondsSinceEpoch}';
-
-    _root = html.DivElement()
-      ..style.width = '100%'
-      ..style.height = '100%'
-      ..style.backgroundColor = '#000'
-      ..style.position = 'relative'
-      ..style.overflow = 'hidden'
-      ..style.margin = '0'
-      ..style.padding = '0';
-
-    _iframe = html.IFrameElement()
-      ..allow = 'autoplay; fullscreen; encrypted-media; picture-in-picture; clipboard-read; clipboard-write; screen-wake-lock; orientation-lock'
-      ..allowFullscreen = true
-      ..referrerPolicy = 'origin'
-      ..style.border = '0'
-      ..style.backgroundColor = '#000'
-      ..style.position = 'absolute'
-      ..style.left = '0'
-      ..style.top = '0'
-      ..style.width = '100%'
-      ..style.height = '100%'
-      ..style.margin = '0'
-      ..style.padding = '0'
-      ..style.display = 'block';
-
-    _root.append(_iframe);
-
-    // ignore: undefined_prefixed_name
-    ui_web.platformViewRegistry.registerViewFactory(_viewType, (int viewId) => _root);
-
-    _loadSub = _iframe.onLoad.listen((_) {
-      // لا نعرض أي طبقة Flutter فوق الموقع/المشغل.
-    });
-
-    Timer.run(() => _load(widget.initialUrl));
+    // PWA/GitHub Pages cannot host these old sources reliably inside iframe.
+    // Many of them return X-Frame-Options / CSP frame-ancestors and the result is
+    // the gray blank page the user saw. Open the site in the same browser tab
+    // instead, so the real website loads normally. Browser Back returns to Light On.
+    Timer.run(_openSameTab);
   }
 
-  @override
-  void dispose() {
-    _loadSub?.cancel();
+  void _openSameTab() {
+    if (_redirectStarted) return;
+    _redirectStarted = true;
     try {
-      _iframe.remove();
-      _root.remove();
-    } catch (_) {}
-    super.dispose();
-  }
-
-  void _load(String url) {
-    try {
-      final frameWindow = _iframe.contentWindow;
-      if (frameWindow != null) {
-        final location = js_util.getProperty<Object?>(frameWindow as Object, 'location');
-        if (location != null) {
-          js_util.callMethod<Object?>(location, 'replace', <Object>[url]);
-          return;
-        }
-      }
-    } catch (_) {}
-    _iframe.src = url;
+      html.window.location.assign(widget.initialUrl);
+    } catch (_) {
+      try {
+        html.window.open(widget.initialUrl, '_self');
+      } catch (_) {}
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    // صفحة PWA للمواقع الخارجية: iframe فقط بدون AppBar وبدون طبقات تحميل سوداء.
-    // الرجوع يكون من زر Back الخاص بالمتصفح/الجهاز حتى لا نغطي المشغل بأي UI.
     return Scaffold(
       backgroundColor: Colors.black,
-      body: SizedBox.expand(
-        child: HtmlElementView(viewType: _viewType),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const CircularProgressIndicator(strokeWidth: 3),
+              const SizedBox(height: 18),
+              Text(
+                'جاري فتح ${widget.title}...',
+                textDirection: TextDirection.rtl,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              const SizedBox(height: 10),
+              const Text(
+                'إذا لم يفتح تلقائياً اضغط الزر أدناه.',
+                textDirection: TextDirection.rtl,
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.white70, fontSize: 13),
+              ),
+              const SizedBox(height: 18),
+              ElevatedButton(
+                onPressed: _openSameTab,
+                child: const Text('فتح الموقع'),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
